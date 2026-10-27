@@ -59,7 +59,7 @@ class VoiceCallController(private val context: Context, private val session: Mob
         listen()
         poll = tasks.launch { while(active) { update(); delay(400) } }
     }
-    private fun current() = session.targetKey == target && session.foreground &&
+    private fun current() = session.targetKey == target && session.isForeground &&
         session.selectedClient.online && session.selectedThread.isNotEmpty()
     private fun listen() {
         if(!current()) { pause("连接或对话已变化，语音已暂停"); return }

@@ -65,6 +65,7 @@ class MobileSession(private val storage: NativeSessionStorage? = null, reader: H
         if(voice==null && storage!=null) voice=VoiceInputController(context.applicationContext,VoiceRecordingStore(context.applicationContext,storage)) { providers }
     }
     val canUseVoice get()=canCompose && foreground && !selectedClient.isDemo && transferStatus==null && !importing
+    val isForeground get() = foreground
     val canStartVoiceCall get() = canUseVoice && selectedClient.online && selectedThread.isNotEmpty() &&
         !running && !submission.sending && !creationWorkPending
     fun prepareVoiceCall(): Boolean = canStartVoiceCall && requireSharing(
