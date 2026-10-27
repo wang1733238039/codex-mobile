@@ -328,6 +328,7 @@ import com.agenthub.core.*
         }
         BasicTextField(session.text,{ session.text=it },Modifier.weight(1f).heightIn(min=40.dp,max=144.dp).padding(vertical=10.dp).onFocusChanged { onFocus(it.isFocused) }.testTag("message-input"),enabled=interactive,maxLines=6,textStyle=TextStyle(color=colors.onSurface,fontSize=16.sp,lineHeight=22.sp),decorationBox={ inner -> if(session.text.isEmpty()) Text("询问 ${session.agentTitle}",color=colors.onSurfaceVariant.copy(alpha=.6f),fontSize=16.sp); inner() })
         IconAction("mic","语音输入","voice-input",interactive && session.canUseVoice && session.voice?.active==false) { session.beginVoice() }
+        VoiceCallAction(session,interactive)
         Surface(shape=CircleShape,color=if(decision.enabled) colors.onSurface else colors.onSurface.copy(alpha=.12f),modifier=Modifier.size(48.dp).testTag(tag).semantics { contentDescription=label; role=Role.Button; if(!decision.enabled) disabled() }.combinedClickable(enabled=decision.enabled || session.canStop || session.canRunAgain,onClick={ if(decision.enabled && (session.voice?.active!=true || decision.action=="stop")) session.performAction(actionContext) },onLongClick={ if(session.composerActionCurrent(actionContext) && (session.canStop || session.canRunAgain)) actions=actionContext })) {
             Box(contentAlignment=Alignment.Center) { ProductIcon(if(decision.action=="busy") "more" else decision.action,color=if(decision.enabled) colors.background else colors.onSurface.copy(alpha=.3f)) }
         }

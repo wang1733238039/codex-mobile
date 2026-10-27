@@ -1286,6 +1286,7 @@ struct RootView: View {
   @StateObject private var store = SessionStore()
   @StateObject private var taskHub = TaskHubStore()
   @StateObject private var voice = VoiceInputController()
+  @StateObject private var voiceCall = VoiceCallController()
   @StateObject private var sidebarMotion = SidebarDrawerCommands()
   @ObservedObject private var notifications = TaskNotificationController.shared
   @ObservedObject private var businessNotifications = TaskHubBusinessNotifications.shared
@@ -4206,7 +4207,7 @@ private struct ComposerView: View {
               applySuggestion(action, mode: .fill); return .handled
             }
         }.padding(.horizontal, presentation.showsGhost ? 8 : 0)
-        if !presentation.showsGhost { voiceInputButton; composerActionButton }
+        if !presentation.showsGhost { voiceInputButton; voiceCallButton; composerActionButton }
       }
       if presentation.showsGhost {
         HStack(spacing: 0) {
@@ -4223,6 +4224,7 @@ private struct ComposerView: View {
           }.accessibilityIdentifier("suggestion-details").disabled(presentation.readScope == nil)
           Spacer(minLength: 0)
           voiceInputButton
+          voiceCallButton
           composerActionButton
         }.buttonStyle(.plain)
       }
@@ -4270,6 +4272,19 @@ private struct ComposerView: View {
           return true
         }
       }
+  }
+
+  private var voiceCallButton: some View {
+    IconButton(symbol: "phone", label: L10n.tr("语音通话"), id: "voice-call") {
+      composerFocused = false
+      if voice.isActive { voice.cancel() }
+      voiceCall.start(store)
+    }.disabled(!store.canStartVoiceCall)
+      .sheet(isPresented: $voiceCall.presented, onDismiss: { voiceCall.stop() }) {
+        VoiceCallPanel(call: voiceCall, store: store)
+          .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+      }
+      .onChange(of: scenePhase) { _, phase in if phase != .active { voiceCall.stop() } }
   }
 
   private func composerSettings(_ density: ToolbarDensity) -> some View {

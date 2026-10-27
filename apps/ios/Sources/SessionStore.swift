@@ -3243,7 +3243,19 @@ private var userRequestedWorkspaceGeneration: UUID?
     }
   }
 
-  func send(content override: Draft? = nil, expectedPlanId: String? = nil) {
+  var canStartVoiceCall: Bool {
+    selectedThreadId != nil && client?.isDemo == false && client?.online == true
+      && canCompose && !isRunning && !sendingKeys.contains(targetKey) && !isImporting
+  }
+  func sendVoiceCall(_ text: String, operationId: String) -> Bool {
+    let content = Draft(text: text, model: draft.model, effort: draft.effort)
+    guard canStartVoiceCall, canSubmit(content), let host = client,
+      requireAISharing(host, model: content.model ?? runtime?.generationSettings?.model ?? selectedModel?.id)
+    else { return false }
+    send(content: content, voiceMessageId: operationId)
+    return true
+  }
+  func send(content override: Draft? = nil, expectedPlanId: String? = nil, voiceMessageId: String? = nil) {
     if client?.isDemo == true {
       sendDemo(content: override)
       return
@@ -3334,7 +3346,7 @@ private var userRequestedWorkspaceGeneration: UUID?
         if connectsDesktop { try requireReplyTarget(host, threadId: threadId, generation: generation) }
         try validateAISharing(host, scope: sharingScope)
         let reply = PendingReply(
-          hostId: host.id, threadId: threadId, clientMessageId: UUID().uuidString,
+          hostId: host.id, threadId: threadId, clientMessageId: voiceMessageId ?? UUID().uuidString,
           text: content.text, attachmentIds: attachments.map(\.id), mode: requestedMode,
           expectedTurnId: expected,
           model: selectedModel, effort: selectedEffort, sourceAttachments: content.attachments)

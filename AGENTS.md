@@ -1,5 +1,16 @@
 # Repository guidance
 
+## Personal fork scope
+
+- This checkout is the user-authorized independent fork `wang1733238039/codex-mobile`.
+- `origin` is this personal GitHub repository; `upstream` is the read-only source
+  `easyaigc/agent-hub`. The Gitea/public-mirror workflow below describes upstream
+  only and does not authorize pushes, PRs, or messages to its infrastructure.
+- Preserve upstream licensing and history. Never assume the upstream developers'
+  computers, iPhones, credentials, acceptance records, or coordination permissions
+  belong to this user. Validate this Windows environment independently.
+- Current approved scope is documented in `docs/fork-implementation.md`.
+
 ## Context
 
 - This repository is an iOS-first multi-computer Codex manager. Read `README.md`, `docs/architecture.md`, and `docs/feasibility.md` before changing integration boundaries.

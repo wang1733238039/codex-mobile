@@ -65,6 +65,13 @@ class MobileSession(private val storage: NativeSessionStorage? = null, reader: H
         if(voice==null && storage!=null) voice=VoiceInputController(context.applicationContext,VoiceRecordingStore(context.applicationContext,storage)) { providers }
     }
     val canUseVoice get()=canCompose && foreground && !selectedClient.isDemo && transferStatus==null && !importing
+    val canStartVoiceCall get() = canUseVoice && selectedClient.online && selectedThread.isNotEmpty() &&
+        !running && !submission.sending && !creationWorkPending
+    fun sendVoiceCall(utterance: String, operationId: String): Boolean {
+        if(!canStartVoiceCall || !submitAllowed(utterance,0) || requireSharing()==null) return false
+        send(CodexContent(utterance,emptyList(),generationSettings),voiceOperationId=operationId)
+        return true
+    }
     fun beginVoice() {
         val controller=voice ?: return
         if(!canUseVoice || controller.active) return
@@ -1047,7 +1054,7 @@ class MobileSession(private val storage: NativeSessionStorage? = null, reader: H
     }
     private fun updateBusy(key: String,owner: String,label: String) { if(busyOwners[key]==owner) busyTargets[key]=label }
     private fun endBusy(key: String,owner: String) { if(busyOwners[key]==owner) { busyOwners.remove(key); busyCommands.remove(key); busyTargets.remove(key) } }
-    private fun send(override: CodexContent? = null,expectedPlanId: String? = null) {
+    private fun send(override: CodexContent? = null,expectedPlanId: String? = null,voiceOperationId: String? = null) {
         val flow=execution ?: return; val client=selectedClient; val key=targetKey; val selection=selectionRevision
         val content=override ?: CodexContent(text,attachments,generationSettings)
         if(!submitAllowed(content.text,content.files.size)) return
@@ -1057,7 +1064,7 @@ class MobileSession(private val storage: NativeSessionStorage? = null, reader: H
         val sharing=requireSharing(if(mode=="steer") runtime?.settings?.model else content.settings.model ?: generationSettings.model ?: runtime?.settings?.model ?: selectedModel?.id) ?: return
         val configured=content.copy(settings=if(mode=="steer") GenerationSettings() else content.settings,sharingScope=sharing.json().toString())
         val turn=runtime?.turnId; val connectionRevision=revisions[client.id] ?: 0
-        val operationId=UUID.randomUUID().toString(); val owner=beginBusy(key,operationId,"正在保存提交意图…"); error=null
+        val operationId=voiceOperationId ?: UUID.randomUUID().toString(); val owner=beginBusy(key,operationId,"正在保存提交意图…"); error=null
         if(thread==null)preparingCreationMessages[key]=MobileMessage(operationId,"user",configured.text,files=configured.files.map { it.manifest.name })
         tasks.launch {
             try {

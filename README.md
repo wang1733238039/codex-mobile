@@ -1,4 +1,14 @@
-# Agent Hub
+# Codex 手机版
+
+这是 [wang1733238039/codex-mobile](https://github.com/wang1733238039/codex-mobile)
+的个人二次开发仓库，基于 [Agent Hub](https://github.com/easyaigc/agent-hub)，保留上游 MIT 许可及完整历史。
+修改前源码保存在 `upstream-backup-20261027` 标签；`upstream` 远端用于核对上游更新。
+
+现有网页版继续在 [codex-phone](https://github.com/wang1733238039/codex-phone) 维护。
+项目划分、桌面适配及连续语音对话的实施范围见 [实施说明](docs/fork-implementation.md)。
+以下是保留的上游说明，其下载链接和验收记录属于上游，不代表本分支的安装包或实测结果。
+
+# Agent Hub（上游说明）
 
 **在手机上一键切换多台电脑、多种 Agent 客户端。**
 

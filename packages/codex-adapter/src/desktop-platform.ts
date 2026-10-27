@@ -568,6 +568,8 @@ export async function openWindowsDesktopPipe(identity: WindowsDesktopIdentity): 
       [
         '-NoProfile',
         '-NonInteractive',
+        '-ExecutionPolicy',
+        'Bypass',
         '-File',
         windowsHelper('desktop-pipe.ps1'),
         '-Action',

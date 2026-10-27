@@ -4,6 +4,162 @@ import Combine
 import SwiftUI
 import MobileCore
 
+/// A foreground voice session bound to one original runtime and exact send receipt.
+@MainActor
+final class VoiceCallController: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
+  enum Phase { case idle, listening, waiting, speaking, paused }
+  @Published private(set) var phase: Phase = .idle
+  @Published private(set) var transcript = ""
+  @Published private(set) var status = ""
+  @Published var presented = false
+  private let listener = LocalVoiceInputController()
+  private let speaker = AVSpeechSynthesizer()
+  private weak var store: SessionStore?
+  private var target = ""
+  private var operation: String?
+  private var startedAt = Date()
+  private var generation = UUID()
+  private var poll: Task<Void, Never>?
+  private var silence: Task<Void, Never>?
+  private var lastUtterance: ObjectIdentifier?
+  override init() { super.init(); speaker.delegate = self }
+
+  func start(_ store: SessionStore) {
+    guard store.canStartVoiceCall else { return }
+    self.store = store; target = store.targetKey; transcript = ""; operation = nil
+    presented = true
+    listen()
+    poll?.cancel()
+    poll = Task { [weak self] in
+      while let self, self.phase != .idle, !Task.isCancelled {
+        self.update()
+        do { try await Task.sleep(for: .milliseconds(400)) } catch { return }
+      }
+    }
+  }
+  private var current: Bool {
+    guard let store else { return false }
+    return store.targetKey == target && store.client?.online == true && store.selectedThreadId != nil
+  }
+  private func listen() {
+    guard current else { pause("连接或对话已变化，语音已暂停"); return }
+    generation = UUID(); let token = generation
+    speaker.stopSpeaking(at: .immediate); listener.cancel(); silence?.cancel()
+    phase = .listening; transcript = ""; status = "正在听你说话…"
+    listener.onComplete = { [weak self] message in
+      guard let self, self.generation == token else { return }
+      self.silence?.cancel()
+      if let message { self.pause(message); return }
+      let text = self.listener.transcript.trimmingCharacters(in: .whitespacesAndNewlines)
+      guard self.current, !text.isEmpty, let store = self.store else {
+        self.pause("没有识别到内容，点继续重开麦克风"); return
+      }
+      self.transcript = text; self.phase = .waiting; self.status = "正在提交语音指令…"
+      let id = UUID().uuidString.lowercased()
+      self.operation = id; self.startedAt = Date()
+      if !store.sendVoiceCall(text, operationId: id) {
+        self.pause("暂时不能提交，请查看连接、审批或数据共享确认。原文字草稿已保留。")
+      }
+    }
+    listener.start(target: target, text: "") { [weak self] _, text in
+      guard let self, self.generation == token, self.phase == .listening else { return }
+      self.transcript = text
+      guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+      self.silence?.cancel()
+      self.silence = Task { [weak self] in
+        do { try await Task.sleep(for: .milliseconds(1400)) } catch { return }
+        guard let self, self.generation == token, self.phase == .listening else { return }
+        self.status = "正在识别…"
+        _ = await self.listener.finish()
+      }
+    }
+  }
+  private func update() {
+    guard phase != .idle, phase != .paused else { return }
+    guard current, let store else { pause("已离开原对话或电脑断连，语音已暂停"); return }
+    if phase == .listening, !listener.isActive, let error = listener.error { pause(error); return }
+    guard phase == .waiting, let operation else { return }
+    guard let receipt = store.runtime?.receipts.last(where: { $0.clientMessageId == operation }) else {
+      if Date().timeIntervalSince(startedAt) > 60 {
+        pause("发送结果尚未确认，请查看原操作记录。不会自动重发。")
+      }
+      return
+    }
+    if ["failed", "rejected", "outcome-unknown", "interrupted", "superseded"].contains(receipt.state) {
+      pause(receipt.error ?? "本次输入未完成，请查看原回执。不会自动重发。"); return
+    }
+    if store.runtime?.approvals.isEmpty == false { pause("电脑任务正在等待审批，请先在对话中处理"); return }
+    guard let run = receipt.turnId, !store.isRunning else { status = "Codex 正在执行，等待本次回复…"; return }
+    if ["failed", "interrupted"].contains(store.runtime?.state ?? "") { pause("任务已结束，请查看文字结果"); return }
+    let replies = store.messages.suffix(100).filter {
+      $0.role == "assistant" && $0.runId == run && $0.kind == nil && $0.replyPhase != "commentary"
+    }
+    let text = replies.map(\.text).joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+    if !text.isEmpty { speak(text) }
+  }
+  private func speak(_ text: String) {
+    operation = nil; generation = UUID(); listener.cancel(); silence?.cancel()
+    phase = .speaking; status = "正在朗读回复 · 可打断后继续说"
+    do { try AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
+      try AVAudioSession.sharedInstance().setActive(true)
+    } catch { pause("无法播放语音，文字回复已保留"); return }
+    let plain = String(text.replacingOccurrences(of: "```[\\s\\S]*?```", with: " 代码内容请查看屏幕。 ",
+      options: .regularExpression).replacingOccurrences(of: "[#*_`>]", with: "", options: .regularExpression).prefix(12000))
+    let utterance = AVSpeechUtterance(string: plain)
+    utterance.voice = AVSpeechSynthesisVoice(language: Locale.preferredLanguages.first ?? "zh-CN")
+    lastUtterance = ObjectIdentifier(utterance); speaker.speak(utterance)
+  }
+  nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+    let id = ObjectIdentifier(utterance)
+    Task { @MainActor [weak self] in
+      guard let self, self.phase == .speaking, self.lastUtterance == id else { return }
+      self.releasePlayback()
+      self.listen()
+    }
+  }
+  func interruptAndListen() {
+    guard current else { stop(); return }
+    if operation != nil, phase == .paused { phase = .waiting; status = "继续查询原操作，不重新发送"; return }
+    guard phase != .waiting else { return }
+    releasePlayback(); operation = nil; listen()
+  }
+  private func releasePlayback() {
+    lastUtterance = nil; speaker.stopSpeaking(at: .immediate)
+    try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+  }
+  private func pause(_ message: String) {
+    generation = UUID(); silence?.cancel(); listener.cancel(); releasePlayback()
+    phase = .paused; status = message
+  }
+  func stop() {
+    generation = UUID(); poll?.cancel(); poll = nil; silence?.cancel()
+    listener.cancel(); releasePlayback(); phase = .idle; operation = nil; presented = false
+  }
+}
+
+struct VoiceCallPanel: View {
+  @ObservedObject var call: VoiceCallController
+  @ObservedObject var store: SessionStore
+  var body: some View {
+    VStack(spacing: 24) {
+      Image(systemName: call.phase == .speaking ? "speaker.wave.2" : "waveform").font(.largeTitle)
+        .accessibilityHidden(true)
+      Text("语音通话").font(.title2.weight(.semibold))
+      Text(call.status).font(.body).multilineTextAlignment(.center).accessibilityIdentifier("voice-call-status")
+      if !call.transcript.isEmpty { Text(call.transcript).font(.callout).lineLimit(5) }
+      Text("说完后自动发送，回复后继续听。结束通话只关闭语音，电脑任务继续。")
+        .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
+      HStack(spacing: 24) {
+        Button(call.phase == .speaking ? "打断并说话" : call.phase == .paused ? "继续" : "重新听") { call.interruptAndListen() }
+          .buttonStyle(.borderedProminent).disabled(call.phase == .waiting).frame(minHeight: 48)
+          .accessibilityIdentifier("voice-call-interrupt")
+        Button("结束通话", role: .destructive) { call.stop() }.frame(minHeight: 48)
+      }
+      if store.canStop { Button("停止电脑任务", role: .destructive) { store.stop() }.frame(minHeight: 44) }
+    }.padding(24).frame(maxWidth: .infinity)
+  }
+}
+
 struct VoiceRecording: Sendable {
   let operationId: String
   let data: Data

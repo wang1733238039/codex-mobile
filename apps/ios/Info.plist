@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-  <key>CFBundleName</key><string>Agent Hub</string>
+  <key>CFBundleName</key><string>Codex 手机版</string>
   <key>UIBackgroundModes</key><array><string>remote-notification</string></array>
   <key>UIFileSharingEnabled</key><true/>
   <key>LSSupportsOpeningDocumentsInPlace</key><true/>
@@ -17,7 +17,7 @@
   <key>PHPhotoLibraryPreventAutomaticLimitedAccessAlert</key><true/>
   <key>NSCameraUsageDescription</key><string>扫描电脑配对二维码，或拍照添加到消息草稿。</string>
   <key>NSLocalNetworkUsageDescription</key><string>发现并连接局域网任务主服务及你添加的电脑，管理项目、任务和 Agent 对话并传输附件。</string>
-  <key>NSMicrophoneUsageDescription</key><string>录制语音，由所选电脑或手机系统转写，文字返回消息草稿。</string>
+  <key>NSMicrophoneUsageDescription</key><string>用于语音输入及你主动开启的连续语音通话。通话时识别完成的指令会发送给当前电脑对话。</string>
   <key>NSSpeechRecognitionUsageDescription</key><string>使用手机系统将语音转成文字草稿；选择本地转写或电脑端转写不可用时启用。</string>
   <key>NSAppTransportSecurity</key><dict><key>NSAllowsLocalNetworking</key><true/></dict>
 <key>NotificationAppGroup</key><string>group.$(NOTIFICATION_APP_BUNDLE_ID).notifications</string>
