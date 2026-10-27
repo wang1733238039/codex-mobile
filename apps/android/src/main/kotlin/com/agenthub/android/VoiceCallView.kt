@@ -16,10 +16,11 @@ import androidx.compose.ui.unit.dp
     val call = remember(session) { VoiceCallController(context.applicationContext, session) }
     DisposableEffect(call) { onDispose { call.dispose() } }
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { allowed ->
-        if(allowed) call.start() else session.error = "语音通话需要麦克风权限，请在手机设置中允许"
+        if(allowed && session.prepareVoiceCall()) call.start()
+        else if(!allowed) session.error = "语音通话需要麦克风权限，请在手机设置中允许"
     }
     IconAction("phone", "语音通话", "voice-call", interactive && session.canStartVoiceCall) {
-        permission.launch(Manifest.permission.RECORD_AUDIO)
+        if(session.prepareVoiceCall()) permission.launch(Manifest.permission.RECORD_AUDIO)
     }
     if(call.active) AlertDialog(
         onDismissRequest = call::stop,

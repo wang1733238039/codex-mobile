@@ -58,7 +58,8 @@ final class VoiceCallController: NSObject, ObservableObject, AVSpeechSynthesizer
       let id = UUID().uuidString.lowercased()
       self.operation = id; self.startedAt = Date()
       if !store.sendVoiceCall(text, operationId: id) {
-        self.pause("暂时不能提交，请查看连接、审批或数据共享确认。原文字草稿已保留。")
+        self.operation = nil
+        self.pause("本句未提交，识别文字仍在此处。请先结束通话检查连接或共享许可，再重新说话。")
       }
     }
     listener.start(target: target, text: "") { [weak self] _, text in

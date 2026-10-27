@@ -41,7 +41,9 @@
       "apps/android/src/main/kotlin/com/agenthub/android/AISharingViews.kt",
       "apps/android/src/main/kotlin/com/agenthub/android/VoiceInputView.kt",
       "packages/mobile-core/src/commonMain/kotlin/com/agenthub/core/AISharingRules.kt",
-      "apps/ios/Sources/LocalVoiceInput.swift"
+      "apps/ios/Sources/LocalVoiceInput.swift",
+      "apps/android/src/main/kotlin/com/agenthub/android/VoiceCallController.kt",
+      "apps/android/src/main/kotlin/com/agenthub/android/VoiceCallView.kt"
     ],
     "Contract": [
       "packages/protocol/src/agent-management.ts",
@@ -4259,6 +4261,30 @@
         ]
       },
       "sourceNotes": "iOS 原生核心阅读闭环本次通过，完整 UI／失败与隔离组合仍待验；Android 已编译但原生待验。解析／KMP／构建与真实结果见 docs/acceptance/file-preview-20261026.md；图片为显式打开引用，相对资源导航、图表和编辑未实现，A6 保持暂停。正式产品未部署，不关闭完整 F72。"
+    },
+    {
+      "id": "F73",
+      "group": "消息与展示",
+      "assertion": "连续语音绑定原电脑和对话，系统识别后经原发送通道提交，按原操作回执和turnId匹配最终回复并朗读，再开麦；保留文字草稿，按钮打断播报，电脑停止单列，未知结果不重发，切目标或断连后台暂停",
+      "sourceAliases": ["Voice", "State", "AndroidRead"],
+      "androidStages": ["A6"],
+      "scenarios": ["S04", "S18"],
+      "ui": ["UI-CALL-01"],
+      "revision": 1,
+      "implementation": {
+        "ios": "implemented",
+        "android": "code-present"
+      },
+      "verification": {
+        "ios": "not-verified-for-current-product",
+        "android": "not-verified-for-current-product"
+      },
+      "sharedImplementation": {
+        "status": "platform-specific",
+        "scope": "系统STT/TTS通过现有持久化发送通道和操作回执连接，不增加模型执行通道",
+        "sources": []
+      },
+      "sourceNotes": "个人分支新增，原生构建与实体手机验收分别登记于docs/personal-voice-call.md，上游历史设备证明不复用。"
     }
   ],
   "changes": [

@@ -1286,7 +1286,6 @@ struct RootView: View {
   @StateObject private var store = SessionStore()
   @StateObject private var taskHub = TaskHubStore()
   @StateObject private var voice = VoiceInputController()
-  @StateObject private var voiceCall = VoiceCallController()
   @StateObject private var sidebarMotion = SidebarDrawerCommands()
   @ObservedObject private var notifications = TaskNotificationController.shared
   @ObservedObject private var businessNotifications = TaskHubBusinessNotifications.shared
@@ -3824,6 +3823,7 @@ private struct SuggestionSelectableTextField: View {
 }
 
 private struct ComposerView: View {
+  @StateObject private var voiceCall = VoiceCallController()
   private struct HandledSuggestion: Hashable {
     let target: String
     let sourceTurnId: String
@@ -4276,6 +4276,7 @@ private struct ComposerView: View {
 
   private var voiceCallButton: some View {
     IconButton(symbol: "phone", label: L10n.tr("语音通话"), id: "voice-call") {
+      guard store.prepareVoiceCall() else { return }
       composerFocused = false
       if voice.isActive { voice.cancel() }
       voiceCall.start(store)

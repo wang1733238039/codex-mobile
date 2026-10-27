@@ -14,7 +14,7 @@
 
 ## 工程
 
-Android 包身份改为 `com.codexmobile.personal`，开发版带 `.debug`，与上游 App 分开安装，源码仍使用原 namespace。iOS 构建需要 Mac/Xcode；真机还需用户自己的签名团队与设备授权。
+Android 包身份改为 `com.codexmobile.personal`，开发版带 `.debug`，与上游 App 分开安装，源码仍使用原 namespace。iOS 同样使用独立包身份 `com.codexmobile.personal`，已清除上游签名团队；构建需要 Mac/Xcode，真机还需用户自己的签名团队与设备授权。
 
 `Personal mobile builds` 工作流分别构建 Android APK 与 iOS Simulator App；构建不能代替麦克风、扬声器及桌面真实任务验收。上游README中的APK属于上游，不包含本分支改动。
 

@@ -34,7 +34,10 @@ class VoiceCallController(private val context: Context, private val session: Mob
     init {
         speaker = TextToSpeech(context.applicationContext) { code ->
             speechReady = code == TextToSpeech.SUCCESS
-            if(speechReady) speaker?.language = Locale.getDefault()
+            if(speechReady) {
+                val language = speaker?.setLanguage(Locale.getDefault())
+                speechReady = language != TextToSpeech.LANG_MISSING_DATA && language != TextToSpeech.LANG_NOT_SUPPORTED
+            }
         }
         speaker?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onStart(id: String?) {}
@@ -88,7 +91,10 @@ class VoiceCallController(private val context: Context, private val session: Mob
                 transcript = text; phase = Phase.WAITING; status = "正在提交语音指令…"
                 val id = UUID.randomUUID().toString()
                 operation = id; startedAt = System.currentTimeMillis()
-                if(!session.sendVoiceCall(text, id)) pause("暂时不能提交，请查看连接、审批或数据共享确认。原文字草稿已保留。")
+                if(!session.sendVoiceCall(text, id)) {
+                    operation = null
+                    pause("本句未提交，识别文字仍在此处。请先结束通话检查连接或共享许可，再重新说话。")
+                }
             }
             override fun onError(error: Int) {
                 if(token != generation || phase != Phase.LISTENING) return

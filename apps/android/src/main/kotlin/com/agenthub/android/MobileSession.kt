@@ -67,8 +67,10 @@ class MobileSession(private val storage: NativeSessionStorage? = null, reader: H
     val canUseVoice get()=canCompose && foreground && !selectedClient.isDemo && transferStatus==null && !importing
     val canStartVoiceCall get() = canUseVoice && selectedClient.online && selectedThread.isNotEmpty() &&
         !running && !submission.sending && !creationWorkPending
+    fun prepareVoiceCall(): Boolean = canStartVoiceCall && requireSharing(
+        generationSettings.model ?: runtime?.settings?.model ?: selectedModel?.id) != null
     fun sendVoiceCall(utterance: String, operationId: String): Boolean {
-        if(!canStartVoiceCall || !submitAllowed(utterance,0) || requireSharing()==null) return false
+        if(!prepareVoiceCall() || !submitAllowed(utterance,0)) return false
         send(CodexContent(utterance,emptyList(),generationSettings),voiceOperationId=operationId)
         return true
     }

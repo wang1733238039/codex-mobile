@@ -3247,10 +3247,15 @@ private var userRequestedWorkspaceGeneration: UUID?
     selectedThreadId != nil && client?.isDemo == false && client?.online == true
       && canCompose && !isRunning && !sendingKeys.contains(targetKey) && !isImporting
   }
+  func prepareVoiceCall() -> Bool {
+    guard canStartVoiceCall, let host = client else { return false }
+    return requireAISharing(host, model: draft.model ?? runtime?.generationSettings?.model ?? selectedModel?.id)
+  }
   func sendVoiceCall(_ text: String, operationId: String) -> Bool {
-    let content = Draft(text: text, model: draft.model, effort: draft.effort)
-    guard canStartVoiceCall, canSubmit(content), let host = client,
-      requireAISharing(host, model: content.model ?? runtime?.generationSettings?.model ?? selectedModel?.id)
+    var content = draft
+    content.text = text
+    content.attachments = []
+    guard prepareVoiceCall(), canSubmit(content)
     else { return false }
     send(content: content, voiceMessageId: operationId)
     return true
