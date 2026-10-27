@@ -27,6 +27,7 @@ class VoiceCallController(private val context: Context, private val session: Mob
     private var target = ""
     private var operation: String? = null
     private var startedAt = 0L
+    private var missingReplySince = 0L
     private var generation = 0
     private var poll: Job? = null
     private var silenceRetries = 0
@@ -90,7 +91,7 @@ class VoiceCallController(private val context: Context, private val session: Mob
                 if(text.isEmpty()) { pause("没有识别到内容，点继续重开麦克风"); return }
                 transcript = text; phase = Phase.WAITING; status = "正在提交语音指令…"
                 val id = UUID.randomUUID().toString()
-                operation = id; startedAt = System.currentTimeMillis()
+                operation = id; startedAt = System.currentTimeMillis(); missingReplySince = 0L
                 if(!session.sendVoiceCall(text, id)) {
                     operation = null
                     pause("本句未提交，识别文字仍在此处。请先结束通话检查连接或共享许可，再重新说话。")
@@ -134,12 +135,23 @@ class VoiceCallController(private val context: Context, private val session: Mob
                 pause("发送结果尚未确认，请查看原操作记录。不会自动重发。")
             return
         }
-        val run = receipt.turnId ?: return
+        val run = receipt.turnId
+        if(run == null) {
+            if(System.currentTimeMillis() - startedAt > 60_000)
+                pause("本次输入已收到，但任务轮次尚未确认。请查看原操作记录，不会自动重发。")
+            return
+        }
+        if(session.runtimeState in listOf("failed", "interrupted")) { pause("任务已结束，请查看文字结果"); return }
+        if(session.running) { missingReplySince = 0L; status = "Codex 正在执行，等待本次回复…"; return }
         val replies = session.messages.takeLast(100).filter {
             it.role == "assistant" && it.runId == run && it.kind == null && it.replyPhase != "commentary"
         }
-        if(replies.isEmpty() || session.running) { status = "Codex 正在执行，等待本次回复…"; return }
-        if(session.runtimeState in listOf("failed", "interrupted")) { pause("任务已结束，请查看文字结果"); return }
+        if(replies.isEmpty()) {
+            if(missingReplySince == 0L) missingReplySince = System.currentTimeMillis()
+            if(System.currentTimeMillis() - missingReplySince > 15_000)
+                pause("本轮已停止执行，但没有取得最终文字回复。请查看原对话，不会自动重发。")
+            return
+        }
         val text = replies.joinToString("\n") { it.text }.trim()
         if(text.isNotEmpty()) speak(text)
     }

@@ -18,6 +18,7 @@ final class VoiceCallController: NSObject, ObservableObject, AVSpeechSynthesizer
   private var target = ""
   private var operation: String?
   private var startedAt = Date()
+  private var missingReplySince: Date?
   private var generation = UUID()
   private var poll: Task<Void, Never>?
   private var silence: Task<Void, Never>?
@@ -56,7 +57,7 @@ final class VoiceCallController: NSObject, ObservableObject, AVSpeechSynthesizer
       }
       self.transcript = text; self.phase = .waiting; self.status = "正在提交语音指令…"
       let id = UUID().uuidString.lowercased()
-      self.operation = id; self.startedAt = Date()
+      self.operation = id; self.startedAt = Date(); self.missingReplySince = nil
       if !store.sendVoiceCall(text, operationId: id) {
         self.operation = nil
         self.pause("本句未提交，识别文字仍在此处。请先结束通话检查连接或共享许可，再重新说话。")
@@ -90,13 +91,25 @@ final class VoiceCallController: NSObject, ObservableObject, AVSpeechSynthesizer
       pause(receipt.error ?? "本次输入未完成，请查看原回执。不会自动重发。"); return
     }
     if store.runtime?.approvals.isEmpty == false { pause("电脑任务正在等待审批，请先在对话中处理"); return }
-    guard let run = receipt.turnId, !store.isRunning else { status = "Codex 正在执行，等待本次回复…"; return }
+    guard let run = receipt.turnId else {
+      if Date().timeIntervalSince(startedAt) > 60 {
+        pause("本次输入已收到，但任务轮次尚未确认。请查看原操作记录，不会自动重发。")
+      }
+      return
+    }
     if ["failed", "interrupted"].contains(store.runtime?.state ?? "") { pause("任务已结束，请查看文字结果"); return }
+    guard !store.isRunning else { missingReplySince = nil; status = "Codex 正在执行，等待本次回复…"; return }
     let replies = store.messages.suffix(100).filter {
       $0.role == "assistant" && $0.runId == run && $0.kind == nil && $0.replyPhase != "commentary"
     }
     let text = replies.map(\.text).joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
     if !text.isEmpty { speak(text) }
+    else {
+      if missingReplySince == nil { missingReplySince = Date() }
+      if let missingReplySince, Date().timeIntervalSince(missingReplySince) > 15 {
+        pause("本轮已停止执行，但没有取得最终文字回复。请查看原对话，不会自动重发。")
+      }
+    }
   }
   private func speak(_ text: String) {
     operation = nil; generation = UUID(); listener.cancel(); silence?.cancel()
