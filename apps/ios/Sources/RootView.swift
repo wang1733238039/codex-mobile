@@ -1569,20 +1569,7 @@ struct RootView: View {
             Button(L10n.tr("已归档对话"), systemImage: "archivebox") { store.sheet = .archivedChats }.accessibilityIdentifier("archived-chats")
           }
           ForEach(store.pendingChatActions()) { receipt in
-            Button { store.queryChatAction(receipt) } label: {
-              Label {
-                VStack(alignment: .leading) {
-                  Text(store.chatActionRecordLabel(receipt))
-                  Text(L10n.tr("查询聊天操作记录")).font(.caption)
-                }
-              } icon: { Image(systemName: "arrow.clockwise") }
-            }
-              .accessibilityIdentifier("chat-action-query")
-              .accessibilityLabel(L10n.tr("查询聊天操作记录") + "，" + store.chatActionRecordLabel(receipt))
-              .accessibilityValue(receipt.threadId + " · " + receipt.id)
-            if receipt.waitingEnded != true {
-              Button(L10n.tr("结束等待") + " · " + store.chatActionRecordLabel(receipt)) { endChatActionTarget = receipt }
-            }
+            chatActionMenuItems(receipt)
           }
           if store.client?.isDemo == false {
             Button(L10n.tr("刷新历史"), systemImage: "arrow.clockwise") {
@@ -1616,6 +1603,25 @@ struct RootView: View {
         .accessibilityValue(store.currentChatActionBusy || store.loading ? L10n.tr("正在更新…") : "")
       }.floatingSurface()
         .sheet(isPresented: $showsReplyRecords) { ReplyDeliveryRecordsView(store: store, target: store.targetKey) }
+  }
+
+  @ViewBuilder private func chatActionMenuItems(_ receipt: ChatActionReceipt) -> some View {
+    let recordLabel = store.chatActionRecordLabel(receipt)
+    let queryLabel = L10n.tr("查询聊天操作记录")
+    Button { store.queryChatAction(receipt) } label: {
+      Label {
+        VStack(alignment: .leading) {
+          Text(recordLabel)
+          Text(queryLabel).font(.caption)
+        }
+      } icon: { Image(systemName: "arrow.clockwise") }
+    }
+    .accessibilityIdentifier("chat-action-query")
+    .accessibilityLabel(queryLabel + "，" + recordLabel)
+    .accessibilityValue(receipt.threadId + " · " + receipt.id)
+    if receipt.waitingEnded != true {
+      Button(L10n.tr("结束等待") + " · " + recordLabel) { endChatActionTarget = receipt }
+    }
   }
 
   private var clientSelector: some View {
