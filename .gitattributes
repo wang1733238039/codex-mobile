@@ -1,0 +1,4 @@
+# Source fingerprints and generated-file checks use the committed LF bytes.
+# Keep Windows checkouts consistent with the macOS/Linux build runners.
+* text=auto eol=lf
+*.bat -text
