@@ -8,11 +8,12 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const output = resolve(root, process.argv[2] || '.build/web-adapter');
 mkdirSync(resolve(output, 'dist'), { recursive: true });
 mkdirSync(resolve(output, 'windows'), { recursive: true });
-await build({
+const built = await build({
   entryPoints: [resolve(root, 'scripts/web-adapter-entry.mjs')],
   bundle: true,
   platform: 'node',
   format: 'esm',
+  metafile: true,
   external: ['./runtime-session.js'],
   outfile: resolve(output, 'dist/desktop-ipc.mjs'),
 });
@@ -32,13 +33,16 @@ copyFileSync(
   resolve(output, 'windows/desktop-pipe.ps1'),
 );
 const inputs = [
-  'scripts/web-adapter-entry.mjs',
-  'packages/codex-adapter/src/desktop-ipc.ts',
-  'packages/codex-adapter/src/desktop-framing.ts',
-  'packages/codex-adapter/src/desktop-live-window.ts',
-  'packages/codex-adapter/src/desktop-platform.ts',
-  'packages/codex-adapter/src/windows-process.ts',
-  'packages/codex-adapter/windows/desktop-pipe.ps1',
+  ...new Set([
+    'scripts/web-adapter-entry.mjs',
+    'packages/codex-adapter/src/desktop-ipc.ts',
+    'packages/codex-adapter/src/desktop-framing.ts',
+    'packages/codex-adapter/src/desktop-live-window.ts',
+    'packages/codex-adapter/src/desktop-platform.ts',
+    'packages/codex-adapter/src/windows-process.ts',
+    'packages/codex-adapter/windows/desktop-pipe.ps1',
+    ...Object.keys(built.metafile.inputs),
+  ]),
 ];
 const sources = {};
 for (const file of inputs) {
