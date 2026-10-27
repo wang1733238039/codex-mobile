@@ -1,4 +1,8 @@
-# Agent Hub Android
+# Codex 手机版 Android
+
+本个人分支的开发包为 `com.codexmobile.personal.debug`，独立验收包为 `com.codexmobile.personal.acceptance`，名称“Codex 手机版”。包含连续语音入口，见[使用与验收状态](../../docs/personal-voice-call.md)。下文上游旧包名和历史验收记录属于上游。
+
+## 上游工程说明
 
 原生 Kotlin / Jetpack Compose 工程，Android 8.0 / API 26 起，compile / target API 37。A1–A4 及 UM01–UM05 已有实现与历史适用验收；EasyWork A5 整体尚未封存，后续 iOS 优化尚未全部同步，系统能力与 Android 通知的完整门槛未关闭。当前以 [2026-10-22 后续计划](../../docs/plans/android-alignment-20261022.md)及逐项矩阵为准；Task Hub 业务项目/任务暂缓，A6 保持暂停。更换后的真机仅完成开发环境核验，未执行产品功能验收。
 

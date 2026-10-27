@@ -8,6 +8,28 @@
 项目划分、桌面适配及连续语音对话的实施范围见 [实施说明](docs/fork-implementation.md)。
 以下是保留的上游说明，其下载链接和验收记录属于上游，不代表本分支的安装包或实测结果。
 
+## 本分支下载与使用
+
+| 平台    | 当前交付                                                                                                                                                                        |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Android | [下载 Codex 手机版语音预览 APK](https://github.com/wang1733238039/codex-mobile/releases/download/v0.2.0-voice-preview.1/codex-mobile-0.2.0-preview.apk)，Android 8.0+，开发签名 |
+| iPhone  | iOS Simulator 编译通过；真机需自己的签名和设备授权，暂未提供可安装 IPA                                                                                                          |
+
+[版本说明和校验值](https://github.com/wang1733238039/codex-mobile/releases/tag/v0.2.0-voice-preview.1) ·
+[安装、连接和语音说明](docs/personal-voice-call.md)
+
+电话图标用于连续语音：说话、原对话执行、朗读本轮回复，再听下一句；提供按钮打断。
+现有网页版继续保留。原生 App 需自己的电脑 Host 连接，网页账号不能直接替代；
+本次实体手机语音和真实任务尚未验收，本机 Host 配置仍受 Windows 脚本执行策略阻塞。
+
+本分支源码：
+
+```sh
+git clone https://github.com/wang1733238039/codex-mobile.git
+cd codex-mobile
+pnpm install --frozen-lockfile
+```
+
 # Agent Hub（上游说明）
 
 **在手机上一键切换多台电脑、多种 Agent 客户端。**
