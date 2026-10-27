@@ -4269,20 +4269,15 @@
       "sourceAliases": ["Voice", "State", "AndroidRead"],
       "androidStages": ["A6"],
       "scenarios": ["S04", "S18"],
-      "ui": ["UI-CALL-01"],
+      "ui": ["UI06"],
       "revision": 1,
       "implementation": {
-        "ios": "implemented",
+        "ios": "code-present",
         "android": "code-present"
       },
       "verification": {
         "ios": "not-verified-for-current-product",
         "android": "not-verified-for-current-product"
-      },
-      "sharedImplementation": {
-        "status": "platform-specific",
-        "scope": "系统STT/TTS通过现有持久化发送通道和操作回执连接，不增加模型执行通道",
-        "sources": []
       },
       "sourceNotes": "个人分支新增，原生构建与实体手机验收分别登记于docs/personal-voice-call.md，上游历史设备证明不复用。"
     }
@@ -10084,6 +10079,29 @@
         "apps/ios/Tests/CodexManageUITests.swift": "6cdb6ab2241b9317577e97a61eb1f6dd306da2b1d876f83d6e4faf942b487f1f",
         "apps/ios/Resources/en.lproj/Localizable.strings": "6428df79a44163acdfcc2bde53645d497aeee05b56f69eca0915beceea3fff40",
         "apps/ios/Resources/zh-Hans.lproj/Localizable.strings": "58f811d766918a60198c3bec5e90ce6cbca914185c694b0df0b88fbffc293782"
+      }
+    },
+    {
+      "id": "personal-voice-and-desktop-web-20261027",
+      "baseCommit": "d195dfef9637dbbca7f7d116b3b50da78eae0593",
+      "features": ["F73", "F64", "F20"],
+      "summary": "Personal continuous voice preview and narrow desktop web adapter; native builds and physical acceptance recorded separately",
+      "files": {
+        "apps/android/build.gradle.kts": "9258fb2d56f116c6f7e6507d4ff5c7f28db71f8ab28d8c11bef003398d3c6629",
+        "apps/android/src/main/AndroidManifest.xml": "1a9dd12000708fb368d00035ac119396732448581473335be8224b56fd13348f",
+        "apps/android/src/main/kotlin/com/agenthub/android/AgentHubApp.kt": "8f0c04e480267a922fbc9dc1091462d16a2904170bf525a933fa74eb9e21dd6b",
+        "apps/android/src/main/kotlin/com/agenthub/android/MobileSession.kt": "de50181395ddb11fc381021dae661e65958b88eaded5b3bcff226e5c942af620",
+        "apps/android/src/main/kotlin/com/agenthub/android/ProductIcons.kt": "c0a764c0542db78ae22c90abe9ed6a25f034f7684f1bd8ba95a9d12e59577446",
+        "apps/android/src/main/kotlin/com/agenthub/android/VoiceCallController.kt": "4caf16cadc2fc43a5991a6c8ac39017f4e2dfc4f33363095e891e4c4e58d1f26",
+        "apps/android/src/main/kotlin/com/agenthub/android/VoiceCallView.kt": "2392f4629ed71cb3b2f88f4a1f7d3948b76d64824f358c235a2c8eaecd081c84",
+        "apps/ios/CodexManage.xcodeproj/project.pbxproj": "4f9e7df6cf6572358e193b13761b5adc6e2688fa735dcb8dcb15021b78b42dd5",
+        "apps/ios/Info.plist": "7764e9561a695ec2b0aa655b4d79133a9eac5bf2eb82999600cf772c2cdc6147",
+        "apps/ios/Sources/RootView.swift": "1f73522e69a64405d930ffc60b6365a24eb9e5e66dbe9b1841937535512df5f7",
+        "apps/ios/Sources/SessionStore.swift": "94b6b574a073b985666e41b5717b7e4934e992a0e17d3b6b070624780ed2d8cc",
+        "apps/ios/Sources/VoiceInput.swift": "0f45edb719822df0c762e57e5d63ceae2e4917a715d8ccf404c6425b182e1cb1",
+        "packages/codex-adapter/src/desktop-platform.ts": "10aed455c334f30ed2c2b8413a72abf8df1093fdf67cd560df3dd0ebebcc4d94",
+        "scripts/build-web-adapter.mjs": "420cf6fa56feb806a061813ecdbe08cfec1793c150393fdb57f2bb273d924f3a",
+        "scripts/web-adapter-entry.mjs": "8da6627c41614a7cb71c49a3a7a16f22516b10bd60596b6fda67b66c98772d88"
       }
     }
   ]
