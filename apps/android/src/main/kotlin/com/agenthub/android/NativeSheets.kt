@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.ui.semantics.semantics
@@ -58,8 +59,8 @@ import androidx.compose.foundation.text.KeyboardOptions
         LaunchedEffect(page) { focus.clearFocus(force=true); keyboard?.hide() }
         Column(Modifier.fillMaxWidth().fillMaxHeight(.9f).testTag("sheet-$page")) {
             Box(Modifier.fillMaxWidth().heightIn(min=48.dp).padding(horizontal=12.dp)) {
-                Text(when(page) { "ai-sharing", "ai-sharing-settings"->"AI 数据共享"; "settings"->"设置"; "clients"->"客户端"; "add"->if(editing==null) "添加客户端" else "编辑客户端"; "add-project"->"添加项目"; "projects"->"选择项目"; "generation"->"模型、推理与权限"; "reply-records"->"发送记录"; "chat-search"->"在聊天中查找"; "archived-chats"->"已归档对话"; "workspace-archive"->"批量归档对话"; else->"外观" },Modifier.align(Alignment.Center),fontSize=17.sp,fontWeight=FontWeight.SemiBold)
-                if(page in listOf("appearance","ai-sharing-settings")) TextButton(onClick={ navigate("settings") },modifier=Modifier.align(Alignment.CenterStart).testTag("appearance-back")) { ProductIcon("chevron",Modifier.size(14.dp).rotate(180f)); Text("设置") }
+                Text(when(page) { "ai-sharing", "ai-sharing-settings"->"AI 数据共享"; "settings"->"设置"; "update"->"应用更新"; "clients"->"客户端"; "add"->if(editing==null) "添加客户端" else "编辑客户端"; "add-project"->"添加项目"; "projects"->"选择项目"; "generation"->"模型、推理与权限"; "reply-records"->"发送记录"; "chat-search"->"在聊天中查找"; "archived-chats"->"已归档对话"; "workspace-archive"->"批量归档对话"; else->"外观" },Modifier.align(Alignment.Center),fontSize=17.sp,fontWeight=FontWeight.SemiBold)
+                if(page in listOf("appearance","ai-sharing-settings","update")) TextButton(onClick={ navigate("settings") },modifier=Modifier.align(Alignment.CenterStart).testTag(if(page=="update") "update-back" else "appearance-back")) { ProductIcon("chevron",Modifier.size(14.dp).rotate(180f)); Text("设置") }
                 TextButton(onClick=if(page=="add") { { navigate("clients") } } else close,enabled=(page!="ai-sharing"||!session.aiSharing.busy)&&(page!="add"||!session.connectionBusy)&&(page!="add-project"||!session.projectBusy),modifier=Modifier.align(if(page=="ai-sharing") Alignment.CenterStart else Alignment.CenterEnd).testTag(if(page=="settings") "settings-done" else if(page=="add") "cancel-client-form" else if(page=="chat-search") "chat-search-close" else "sheet-done")) { Text(if(page=="ai-sharing" || page=="add" && editing==null) "取消" else "完成") }
             }
             HorizontalDivider(color=colors.onSurface.copy(alpha=.06f))
@@ -67,6 +68,7 @@ import androidx.compose.foundation.text.KeyboardOptions
                 "ai-sharing" -> AISharingPage(session)
                 "ai-sharing-settings" -> AISharingPage(session,settings=true)
                 "settings" -> SettingsPage(session,navigate)
+                "update" -> UpdatePage()
                 "clients" -> ClientsPage(session,navigate,edit,close)
                 "add" -> key(editing?.id) { ConnectionPage(session,editing) { navigate("clients") } }
                 "projects" -> ProjectsPage(session,close)
@@ -99,8 +101,65 @@ import androidx.compose.foundation.text.KeyboardOptions
         GroupCard { Row(Modifier.fillMaxWidth().padding(horizontal=16.dp),verticalAlignment=Alignment.CenterVertically) { Text("界面示例",Modifier.weight(1f)); Switch(session.demo,{ session.setDemoMode(it) },Modifier.testTag("settings-demo-toggle"),colors=SwitchDefaults.colors(checkedThumbColor=androidx.compose.ui.graphics.Color.White,checkedTrackColor=androidx.compose.ui.graphics.Color(0xFF34C759))) } }
         Text("使用本地示例客户端测试界面。",Modifier.padding(horizontal=32.dp,vertical=8.dp),fontSize=12.sp,color=colors.onSurfaceVariant)
         GroupTitle("关于")
-        GroupCard { Row(Modifier.fillMaxWidth().padding(16.dp)) { Text("Agent Hub",Modifier.weight(1f)); Text("0.1.0",color=colors.onSurfaceVariant) }; Text("统一管理局域网内多台电脑上的 Agent 客户端，目前支持 Codex 和 Easy Work，后续可兼容更多客户端。\n\n一键切换客户端，随时发起任务，让 AI 自动完成并交付工作。",Modifier.padding(horizontal=16.dp).padding(bottom=16.dp),fontSize=14.sp,color=colors.onSurfaceVariant) }
+        GroupCard {
+            SettingsRow("检查更新","v${BuildConfig.VERSION_NAME}","settings-update",icon="refresh") { navigate("update") }
+            Row(Modifier.fillMaxWidth().padding(16.dp)) { Text("Codex 手机版",Modifier.weight(1f)); Text(BuildConfig.VERSION_NAME,color=colors.onSurfaceVariant) }
+            Text("统一管理电脑上的 Codex 客户端，在手机上查看和操作项目、对话与任务。",Modifier.padding(horizontal=16.dp).padding(bottom=16.dp),fontSize=14.sp,color=colors.onSurfaceVariant)
+        }
         Spacer(Modifier.height(24.dp))
+    }
+}
+
+@Composable private fun UpdatePage() {
+    val context = LocalContext.current
+    val manager = remember(context) { AppUpdateManager(context.applicationContext) }
+    val scope = rememberCoroutineScope()
+    var state by remember { mutableStateOf("点击检查最新版本") }
+    var update by remember { mutableStateOf<AppUpdateInfo?>(null) }
+    var busy by remember { mutableStateOf(false) }
+    fun check() {
+        if (busy) return
+        busy = true
+        state = "正在检查…"
+        scope.launch {
+            try {
+                update = manager.check()
+                state = update?.let { "发现新版本 ${it.tag}" } ?: "当前已经是最新版本"
+            } catch (error: Exception) {
+                state = error.message ?: "检查更新失败"
+            } finally {
+                busy = false
+            }
+        }
+    }
+    Column(Modifier.fillMaxSize().padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+        Text("当前版本 ${BuildConfig.VERSION_NAME}",fontSize=16.sp,fontWeight=FontWeight.SemiBold)
+        Text(state,fontSize=14.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)
+        update?.let { info ->
+            Text("版本 ${info.versionName}（构建 ${info.versionCode}） · ${info.assetName}",fontSize=13.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)
+            Button(
+                enabled=!busy,
+                onClick={
+                    busy=true
+                    state="正在下载…"
+                    scope.launch {
+                        try {
+                            val file=manager.download(info)
+                            state=if(manager.install(file)) "已打开系统安装确认" else "请允许安装未知来源后再次点击"
+                        } catch(error: Exception) {
+                            state=error.message ?: "下载失败"
+                        } finally { busy=false }
+                    }
+                },
+                modifier=Modifier.fillMaxWidth().testTag("install-app-update"),
+            ) { Text("下载并安装") }
+        }
+        OutlinedButton(
+            enabled=!busy,
+            onClick=::check,
+            modifier=Modifier.fillMaxWidth().testTag("check-app-update"),
+        ) { Text(if(busy) "处理中…" else "检查更新") }
+        Text("更新文件来自 GitHub Releases。下载完成后由安卓系统确认安装，应用不会静默替换自身。",fontSize=12.sp,color=MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 @Composable private fun AppearancePage(session: MobileSession) {

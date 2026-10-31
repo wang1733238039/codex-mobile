@@ -31,7 +31,11 @@ try {
             }
             $acl.AddAccessRule($rule)
         }
-        Set-Acl -LiteralPath $Path -AclObject $acl
+        if ($item.PSIsContainer) {
+            [System.IO.Directory]::SetAccessControl($Path, [System.Security.AccessControl.DirectorySecurity]$acl)
+        } else {
+            [System.IO.File]::SetAccessControl($Path, [System.Security.AccessControl.FileSecurity]$acl)
+        }
     }
     $acl = Get-Acl -LiteralPath $Path
     if ($acl.GetOwner([System.Security.Principal.SecurityIdentifier]).Value -ne $sid.Value) { throw 'WRONG_FILE_OWNER' }

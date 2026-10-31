@@ -23,6 +23,19 @@ pnpm build:android
 ANDROID_SERIAL=<dedicated-emulator> MOBILE_PHASE=A1 pnpm test:android
 ```
 
+## 应用内升级
+
+正式包可以在“设置 → 关于 → 检查更新”中读取本仓库的 GitHub Releases。发现
+新版本后，应用会先下载到私有缓存，再交给 Android 系统安装器确认；Android
+不允许普通应用静默覆盖自身，因此首次安装未知来源权限仍需由用户确认。
+
+更新包必须保持同一个 `applicationId` 和签名，并递增 `versionCode`。当前个人预览
+包仍是开发签名，不能把不同机器生成的 debug APK 互相覆盖安装。准备长期分发前，
+应在本机私有目录生成固定 release keystore，通过未提交的 Gradle signing
+properties 构建并上传 APK 到 GitHub Release；私钥、密码和本机路径不能提交到
+仓库。Release 正文可选写入
+`codex-mobile-version-code: <number>`，用于同一语义版本的补丁更新。
+
 测试入口要求明确的 `emulator-` 序列号，仅对该模拟器安装 APK 和仪器测试 APK。不会向其他已连接手机安装。日志、原生截图、API／ABI／APK 摘要保存在忽略的 `.local/mobile-acceptance`。
 
 `scripts/mobile/gradle.mjs` 支持 `JAVA_HOME`、`ANDROID_HOME` / `ANDROID_SDK_ROOT`、`KOTLIN_NATIVE_HOME`，也可读取忽略的 `.local/mobile-toolchain.json`，其中仅保存本机工具路径。依赖缓存在独立工作树的 `.local/gradle-home`。不要提交 SDK 路径、签名秘密或其他本机配置。
