@@ -38,20 +38,20 @@ class MobileInitialReadingWindowTest {
         ui.waitUntil(5_000) { !session.historyLoading&&session.messages.size==120 }
     }
     @After fun stop() { ui.runOnIdle { session.leaveForeground() } }
-    @Test fun firstRenderUsesLastTwentySourceMessagesWithoutDeletingHistory() {
-        setup();assertEquals(20,session.visibleMessageLimit);assertEquals(120,session.messages.size)
-        assertEquals((100 until 120).toList(),session.timeline.rows.flatMap { it.indices });assertTrue(session.timeline.hasEarlierMessages);assertEquals(1,requests.get())
+    @Test fun firstRenderUsesLastFifteenSourceMessagesWithoutDeletingHistory() {
+        setup();assertEquals(15,session.visibleMessageLimit);assertEquals(120,session.messages.size)
+        assertEquals((105 until 120).toList(),session.timeline.rows.flatMap { it.indices });assertTrue(session.timeline.hasEarlierMessages);assertEquals(1,requests.get())
     }
     @Test fun nativeEarlierControlAddsSixtyAndRetainsPreviousFirstMessageAnchor() {
-        setup();assertEquals(20,session.visibleMessageLimit)
+        setup();assertEquals(15,session.visibleMessageLimit)
         ui.onNodeWithTag("message-list").performScrollToNode(hasTestTag("history-local-more"))
-        ui.onNodeWithTag("message-window-a-100").assertIsDisplayed()
-        ui.onNodeWithTag("history-local-more").performClick();ui.waitUntil(5_000) { session.visibleMessageLimit==80 }
-        ui.onNodeWithTag("message-window-a-100").assertIsDisplayed()
-        assertEquals((40 until 120).toList(),session.timeline.rows.flatMap { it.indices });assertEquals(1,requests.get());assertEquals("initial window draft",session.text)
+        ui.onNodeWithTag("message-window-a-105").assertIsDisplayed()
+        ui.onNodeWithTag("history-local-more").performClick();ui.waitUntil(5_000) { session.visibleMessageLimit==75 }
+        ui.onNodeWithTag("message-window-a-105").assertIsDisplayed()
+        assertEquals((45 until 120).toList(),session.timeline.rows.flatMap { it.indices });assertEquals(1,requests.get());assertEquals("initial window draft",session.text)
     }
     @Test fun initialBudgetKeepsAnIntersectingToolGroupWhole() {
-        setup(tools=true);assertEquals(20,session.visibleMessageLimit)
+        setup(tools=true);assertEquals(15,session.visibleMessageLimit)
         val first=session.timeline.rows.first();assertEquals("tools",first.kind);assertEquals((80..105).toList(),first.indices)
         assertEquals((80 until 120).toList(),session.timeline.rows.flatMap { it.indices });assertTrue(session.timeline.hasEarlierMessages)
     }
@@ -60,6 +60,6 @@ class MobileInitialReadingWindowTest {
         ui.runOnIdle { session.select(session.selectedClient) };ui.waitUntil(5_000) { !session.loading&&!session.historyLoading }
         assertEquals(expanded,session.visibleMessageLimit);assertEquals("initial window draft",session.text)
         ui.runOnIdle { session.selectThread(session.threads.last()) };ui.waitUntil(5_000) { !session.historyLoading }
-        assertEquals(20,session.visibleMessageLimit);assertFalse(session.revealedEarlier);assertEquals("",session.text)
+        assertEquals(15,session.visibleMessageLimit);assertFalse(session.revealedEarlier);assertEquals("",session.text)
     }
 }

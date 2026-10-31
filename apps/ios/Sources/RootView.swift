@@ -1279,7 +1279,7 @@ struct RootView: View {
     #if DEBUG
     if ProcessInfo.processInfo.arguments.contains("-history-short-paging-fixture") { return 4 }
     #endif
-    return 20
+    return 15
   }
   @AppStorage(L10n.storageKey) private var appLanguage = AppLanguage.system.rawValue
   @AppStorage(VoiceTranscriptionPreference.storageKey) private var voicePreference = VoiceTranscriptionPreference.desktop

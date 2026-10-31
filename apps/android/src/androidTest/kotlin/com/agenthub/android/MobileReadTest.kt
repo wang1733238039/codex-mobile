@@ -282,7 +282,7 @@ class MobileReadTest {
         assertTrue(session.timeline.hasEarlierMessages)
         ui.onNodeWithTag("message-list").performScrollToNode(hasTestTag("history-local-more"))
         ui.onNodeWithTag("history-local-more").performClick(); assertEquals(125,session.messages.size)
-        assertTrue(session.visibleMessageLimit==80)
+        assertTrue(session.visibleMessageLimit==75)
         ui.onNodeWithTag("message-list").performScrollToNode(hasTestTag("history-local-more"))
         ui.onNodeWithTag("history-local-more").performClick(); assertFalse(session.timeline.hasEarlierMessages)
         assertEquals(messages,session.messages)
@@ -298,16 +298,16 @@ class MobileReadTest {
         val list=ui.onNodeWithTag("message-list")
         list.performScrollToNode(hasTestTag("message-pull-115"))
         list.performTouchInput { swipe(Offset(width*.5f,height*.25f),Offset(width*.5f,height*.7f),400) }
-        assertEquals(20,session.visibleMessageLimit)
+        assertEquals(15,session.visibleMessageLimit)
         list.performScrollToIndex(0)
         list.assert(SemanticsMatcher("History is at the actual top") { it.config[androidx.compose.ui.semantics.SemanticsProperties.VerticalScrollAxisRange].value()==0f })
         list.performTouchInput { swipe(Offset(width*.5f,10f),Offset(width*.5f,35f),400) }
-        assertEquals(20,session.visibleMessageLimit)
+        assertEquals(15,session.visibleMessageLimit)
         shot("history-pull-before")
         list.performTouchInput { down(Offset(width*.5f,80f)); moveBy(Offset(0f,height*.1f),16); moveBy(Offset(0f,height*.3f),180) }
-        assertEquals("Holding a pull must not load",20,session.visibleMessageLimit)
+        assertEquals("Holding a pull must not load",15,session.visibleMessageLimit)
         list.performTouchInput { up() }
-        ui.waitUntil(10_000) { session.visibleMessageLimit==80 }
+        ui.waitUntil(10_000) { session.visibleMessageLimit==75 }
         assertEquals(original,session.messages)
         ui.onNodeWithTag("message-pull-105").assertIsDisplayed()
         shot("history-pull-after-anchor")

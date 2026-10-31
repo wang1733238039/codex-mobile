@@ -88,24 +88,24 @@ class MobileQueueMetadataUiTest {
             } finally { main { session.leaveForeground() } }
         }
     }
-    @Test fun clientQueueAndSyncNoticesSurviveInitialTwentyAndEarlierExpansionWithoutInput() {
+    @Test fun clientQueueAndSyncNoticesSurviveInitialFifteenAndEarlierExpansionWithoutInput() {
         QueueMetadataFixture(largeHistory=true).use { f ->
             try {
                 main { session.connect("queue large history UI",f.server.endpoint,"") };ui.waitUntil(15_000) { session.hasClient&&!session.loading };main { session.selectThread(session.threads.single()) }
                 ui.waitUntil(20_000) { !session.historyLoading&&session.messages.size==160&&session.runtime!=null }
                 main { session.text="unsent long history draft" }
-                assertEquals(20,session.visibleMessageLimit);assertEquals((140 until 160).toList(),session.timeline.rows.flatMap { it.indices })
+                assertEquals(15,session.visibleMessageLimit);assertEquals((145 until 160).toList(),session.timeline.rows.flatMap { it.indices })
                 assertEquals(listOf("native-original","old-compatible"),session.queuedReplies.map { it.operationId })
                 assertEquals(listOf("accepted-sync","failed-sync"),session.receiptNotices.map { it.operationId })
                 val histories=f.server.requests.count { it.path=="/v1/history" }
-                ui.runOnIdle { session.earlierMessages() };ui.waitUntil(10_000) { session.visibleMessageLimit==80 }
-                assertEquals((80 until 160).toList(),session.timeline.rows.flatMap { it.indices });assertEquals(histories,f.server.requests.count { it.path=="/v1/history" })
+                ui.runOnIdle { session.earlierMessages() };ui.waitUntil(10_000) { session.visibleMessageLimit==75 }
+                assertEquals((85 until 160).toList(),session.timeline.rows.flatMap { it.indices });assertEquals(histories,f.server.requests.count { it.path=="/v1/history" })
                 ui.onNodeWithTag("queued-native-original").assertExists();ui.onNodeWithTag("queued-old-compatible").assertExists()
                 for(id in listOf("legacy-host","legacy-disposition","removed-native"))ui.onNodeWithTag("queued-$id").assertDoesNotExist()
                 ui.onNodeWithTag("receipt-accepted-sync").performScrollTo().assertIsDisplayed();shot("long-history-queue-and-sync-evidence")
                 f.syncErrors=false;main { session.loadHistory() }
                 ui.waitUntil(10_000) { !session.historyLoading&&session.messages.any { it.id=="phase-clear" } }
-                assertEquals(80,session.visibleMessageLimit);assertEquals("unsent long history draft",session.text)
+                assertEquals(75,session.visibleMessageLimit);assertEquals("unsent long history draft",session.text)
                 assertEquals(listOf("native-original","old-compatible"),session.queuedReplies.map { it.operationId });assertTrue(session.receiptNotices.isEmpty())
                 assertTrue(session.operationRecords.isEmpty());assertTrue(f.server.requests.all { it.method=="GET" })
             }finally{main { session.leaveForeground() }}

@@ -10103,6 +10103,28 @@
         "scripts/build-web-adapter.mjs": "420cf6fa56feb806a061813ecdbe08cfec1793c150393fdb57f2bb273d924f3a",
         "scripts/web-adapter-entry.mjs": "8da6627c41614a7cb71c49a3a7a16f22516b10bd60596b6fda67b66c98772d88"
       }
+    },
+    {
+      "id": "mobile-history-window-15-20261031",
+      "baseCommit": "ef780047bb26a50a6e32141711e183faa31088c7",
+      "features": ["F17", "F18", "F56"],
+      "summary": "统一网页端与原生移动端最近历史窗口为15条；保留更早消息分页，降低首屏传输、缓存合并和移动端渲染开销。仅更新读取窗口与对应回归断言，不改变历史数据或发送通道。",
+      "files": {
+        "apps/android/src/androidTest/kotlin/com/agenthub/android/MobileConversationSyncTest.kt": "f5b12e7817e4f02024caf04e73cdcb72e3ad86fbe34be155b9be0e409df2823f",
+        "apps/android/src/androidTest/kotlin/com/agenthub/android/MobileInitialReadingWindowTest.kt": "b5a9d530a4dda029fc3ba4e6d589adce4b5bd475524c48a35e2f7135ca366282",
+        "apps/android/src/androidTest/kotlin/com/agenthub/android/MobileLargeOwnerReadLiveTest.kt": "4c4dc6a564af826adb60d4ea2fa799757019d4d693e7922742dd6e2d597e44ee",
+        "apps/android/src/androidTest/kotlin/com/agenthub/android/MobileMainActivityRouteLiveTest.kt": "29144367afd359b8a5ee11738df562a9ee92603cc5f2dde40604ea278f6b8a74",
+        "apps/android/src/androidTest/kotlin/com/agenthub/android/MobileQueueMetadataUiTest.kt": "400513475179052b96891b13668ac5aaa9589a46afcb0aeb2b58b012f41512ab",
+        "apps/android/src/androidTest/kotlin/com/agenthub/android/MobileReadTest.kt": "1a89faab18721d2b33be84844ba3104a41cc93faed0cbb3ce47eba2b3f5574a0",
+        "apps/ios/Sources/RootView.swift": "c91de92366a1a70cae666d3c80a0d15a7bd444db7b7d80d823e88b4b2e7fd925",
+        "apps/ios/Sources/SharedReadingPolicy.swift": "39c5080ccb655b9e93be8ffdf7d512af2157299f9f52f1aa4ea2ce49fd37f19a",
+        "apps/ios/Tests/CodexManageUITests.swift": "7f9c14fa6a3cc6d8768e39753c7df452d3cd5983eb7d049f952e5920576b42d8",
+        "packages/codex-adapter/src/history-reader.ts": "b22fe7e94e88b6e50079c91ecd3e2f4603d9b57c6d67fe2cfa6580269094fa58",
+        "packages/codex-adapter/src/runtime-session.ts": "54a624ee0984d93ec01e76a4f1bc0e603f55b9de9c4125d6f6d2ba652fe9942b",
+        "packages/mobile-core/src/commonMain/kotlin/com/agenthub/core/ReadingPolicy.kt": "f0349bb4879f1014ead60a3a100d67741a68760cb1b28797d00ccff1c718b209",
+        "packages/protocol/fixtures/mobile/reading-policy.json": "12e74f31fa0f58e2d67e0aff550755a460532996bbbba24c26360def52b18a09",
+        "scripts/large-conversation-sync-smoke.mjs": "d3c15ebc2ee9a22c1655e1c9120904b4b1064e693d98804e84724b10def67c67"
+      }
     }
   ]
 }

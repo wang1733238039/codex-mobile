@@ -203,7 +203,7 @@ try {
   assert.equal(latest.synchronization.state, 'live');
   assert.equal(latest.runtime.state, 'running');
   assert.equal(latest.runtime.canControl, true);
-  assert.equal(latest.messages.length, 100);
+  assert.equal(latest.messages.length, 15);
   assert.equal(latest.messages.at(-1).text, '进度 239');
   assert.equal(JSON.stringify(unknown), unknownBefore);
   assert(Buffer.byteLength(JSON.stringify(latest)) < 100_000);

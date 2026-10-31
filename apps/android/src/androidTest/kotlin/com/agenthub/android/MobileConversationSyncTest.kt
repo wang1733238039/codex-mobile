@@ -102,7 +102,7 @@ class MobileConversationSyncTest {
         })
         try {
             ui.runOnIdle { session.earlierMessages();session.text="重试保留🙂草稿" }
-            assertEquals(80,session.visibleMessageLimit)
+            assertEquals(75,session.visibleMessageLimit)
             mode="fail";ui.runOnIdle { session.loadHistory() }
             ui.waitUntil(10_000) { !session.historyLoading && !session.selectedClient.online }
             ui.onNodeWithTag("conversation-sync-failure").assertTextEquals("对话同步失败")
@@ -111,7 +111,7 @@ class MobileConversationSyncTest {
             mode="hold";ui.onNodeWithTag("conversation-sync-retry").performClick()
             ui.waitUntil(10_000) { session.historyLoading && requests.get()==before+1 }
             ui.onNodeWithTag("conversation-sync-retry").assertIsNotEnabled();shot("retry-inflight")
-            assertEquals("重试保留🙂草稿",session.text);assertEquals(original,session.messages.map { it.id });assertEquals(80,session.visibleMessageLimit)
+            assertEquals("重试保留🙂草稿",session.text);assertEquals(original,session.messages.map { it.id });assertEquals(75,session.visibleMessageLimit)
             release.complete(Unit);ui.waitUntil(10_000) { !session.historyLoading && session.selectedClient.online }
             ui.onNodeWithTag("conversation-sync-banner").assertDoesNotExist()
             assertEquals(before+1,requests.get());assertEquals(journal,session.operationRecords.map { it.id });assertEquals("重试保留🙂草稿",session.text)

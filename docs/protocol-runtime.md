@@ -10,7 +10,7 @@
 
 ## 大对话最近页与同步失败（2026-10-18）
 
-已实现可选 `window=latest-v1`，适用于 `GET /v1/history` 与指定 thread 的 `GET /v1/events`。原桌面响应增加 `historyWindow: { version: 1, kind: latest | earlier }` 与 `synchronization: { state: live | live-window | history | unavailable, checkedAt?: string }`。最近页最多 100 条消息，以 2 MiB 为分页目标；单条消息不截断，超过目标时单独一页。`nextCursor` 不透明，绑定准确 Host、Thread 与前一页首消息；继续读取较早消息不刷新原 owner 或执行任务。省略参数保持旧完整快照语义，旧 Host 忽略该参数仍可兼容。
+已实现可选 `window=latest-v1`，适用于 `GET /v1/history` 与指定 thread 的 `GET /v1/events`。原桌面响应增加 `historyWindow: { version: 1, kind: latest | earlier }` 与 `synchronization: { state: live | live-window | history | unavailable, checkedAt?: string }`。移动端最近页最多 15 条消息；较早消息按不透明游标继续分页，单条消息不截断。`nextCursor` 绑定准确 Host、Thread 与当前页首消息；继续读取较早消息不刷新原 owner 或执行任务。省略参数保持旧完整快照语义，旧 Host 忽略该参数仍可兼容。
 
 手机合并最近页和已读的较早页，恢复新进度时保留历史、草稿和已提交操作。同步失败固定显示提示与只读重试入口；成功取得 HTTP 响应但 `synchronization.state=unavailable` 的缓存事件不能清除提示，也不能刷新成功时间。Host 在线只代表连接路径可用，不能替代对话实时进度证明。恢复读取不重发消息。
 

@@ -9320,7 +9320,7 @@ final class CodexManageUITests: XCTestCase {
     XCTAssertTrue(held, "A real latest-history request must remain in flight")
     let control = scrollToHistoryControl("history-local-more")
     XCTAssertTrue(control.isEnabled, "Cached earlier messages must remain available during a latest-page read")
-    let anchor = app.staticTexts["HISTORY_PAGING_052"]
+    let anchor = app.staticTexts["HISTORY_PAGING_057"]
     let y = anchor.frame.minY
     control.tap()
     XCTAssertTrue(app.staticTexts["HISTORY_PAGING_008"].waitForExistence(timeout: 10))
@@ -9339,11 +9339,11 @@ final class CodexManageUITests: XCTestCase {
     XCTAssertLessThanOrEqual(control.frame.height, 50)
     XCTAssertFalse(app.buttons["history-more"].exists)
     shot("history-paging-compact-local")
-    // The production initial window is 20 messages, so 72 cached rows start at 52.
-    let boundaryY = app.staticTexts["HISTORY_PAGING_052"].frame.minY
+    // The production initial window is 15 messages, so 72 cached rows start at 57.
+    let boundaryY = app.staticTexts["HISTORY_PAGING_057"].frame.minY
     control.tap()
-    XCTAssertTrue(app.staticTexts["HISTORY_PAGING_052"].isHittable, "Keep the previous reading boundary on screen")
-    XCTAssertEqual(app.staticTexts["HISTORY_PAGING_052"].frame.minY, boundaryY, accuracy: 3,
+    XCTAssertTrue(app.staticTexts["HISTORY_PAGING_057"].isHittable, "Keep the previous reading boundary on screen")
+    XCTAssertEqual(app.staticTexts["HISTORY_PAGING_057"].frame.minY, boundaryY, accuracy: 3,
       "The final cached page must preserve the position, including the end control height")
     for _ in 0..<6 where !app.staticTexts["HISTORY_PAGING_000"].isHittable { app.scrollViews["message-list"].swipeDown() }
     XCTAssertTrue(app.staticTexts["HISTORY_PAGING_000"].isHittable)
@@ -9360,25 +9360,25 @@ final class CodexManageUITests: XCTestCase {
     _ = scrollToHistoryControl("history-local-more")
     shot("history-paging-before-local-pull")
     pullEarlierHistory(distance: 40)
-    XCTAssertFalse(app.staticTexts["HISTORY_PAGING_052"].exists,
+    XCTAssertFalse(app.staticTexts["HISTORY_PAGING_057"].exists,
       "A small bounce must not load history")
-    // 132 - 20 = 112 before expansion; 132 - (20 + 60) = 52 after one pull.
-    let boundary = app.staticTexts["HISTORY_PAGING_112"]
+    // 132 - 15 = 117 before expansion; 132 - (15 + 60) = 57 after one pull.
+    let boundary = app.staticTexts["HISTORY_PAGING_117"]
     let boundaryY = boundary.frame.minY
     pullEarlierHistory()
-    XCTAssertTrue(app.staticTexts["HISTORY_PAGING_052"].waitForExistence(timeout: 5),
+    XCTAssertTrue(app.staticTexts["HISTORY_PAGING_057"].waitForExistence(timeout: 5),
       "An ordinary top pull must reveal the next cached window")
     XCTAssertFalse(app.staticTexts["HISTORY_PAGING_000"].exists,
       "One pull must reveal only one window")
-    XCTAssertTrue(app.staticTexts["HISTORY_PAGING_112"].isHittable,
+    XCTAssertTrue(app.staticTexts["HISTORY_PAGING_117"].isHittable,
       "Pull expansion must keep the previous reading boundary")
     XCTAssertGreaterThan(boundary.frame.minY, boundaryY + 20,
       "Prepending must retain the released pull instead of snapping back to the resting top")
     _ = scrollToHistoryControl("history-local-more")
-    let secondBoundaryY = app.staticTexts["HISTORY_PAGING_052"].frame.minY
+    let secondBoundaryY = app.staticTexts["HISTORY_PAGING_057"].frame.minY
     pullEarlierHistory(distance: 500)
     XCTAssertTrue(app.staticTexts["HISTORY_PAGING_000"].waitForExistence(timeout: 5))
-    XCTAssertGreaterThan(app.staticTexts["HISTORY_PAGING_052"].frame.minY, secondBoundaryY + 20,
+    XCTAssertGreaterThan(app.staticTexts["HISTORY_PAGING_057"].frame.minY, secondBoundaryY + 20,
       "A large pull must retain the released position rather than snapping back")
     let reads = try await historyPagingReads()
     XCTAssertEqual(reads, 0)

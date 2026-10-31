@@ -137,10 +137,10 @@ class MobileLargeOwnerReadLiveTest {
         ui.waitUntil(60_000) { !session.loading&&session.selectedClient.id==config.getString("hostId")&&session.threads.any { it.id==config.getString("threadId") } }
         main { session.selectThread(session.threads.single { it.id==config.getString("threadId") }) }
         ui.waitUntil(60_000) { !session.historyLoading&&session.selectedThread==config.getString("threadId")&&session.messages.isNotEmpty() }
-        assertTrue(page()!!.windowed);assertEquals("latest",page()!!.historyWindowKind);if(config.getBoolean("historyRevisionExpected"))assertNotNull(page()!!.historyRevision) else assertNull("Current versioned legacy Host does not supply optional revision",page()!!.historyRevision);assertNotNull(session.historyCursor);assertEquals(20,session.visibleMessageLimit)
+        assertTrue(page()!!.windowed);assertEquals("latest",page()!!.historyWindowKind);if(config.getBoolean("historyRevisionExpected"))assertNotNull(page()!!.historyRevision) else assertNull("Current versioned legacy Host does not supply optional revision",page()!!.historyRevision);assertNotNull(session.historyCursor);assertEquals(15,session.visibleMessageLimit)
         val firstCount=session.messages.size;val initialIds=session.messages.map { it.id };assertEquals(initialIds.size,initialIds.distinct().size)
         val draft="LARGE_OWNER_LOCAL_DRAFT_"+run.take(8);ui.onNodeWithTag("message-input").performTextReplacement(draft);androidx.test.espresso.Espresso.closeSoftKeyboard()
-        tapEarlier("history-local-more");ui.waitUntil(10_000) { session.visibleMessageLimit==80 };assertEquals(draft,session.text)
+        tapEarlier("history-local-more");ui.waitUntil(10_000) { session.visibleMessageLimit==75 };assertEquals(draft,session.text)
         val known=config.getJSONArray("compactionIds").strings();var earlierPages=0;var loops=0
         while(earlierPages<1||session.messages.none { it.id in known&&it.kind=="contextCompaction"&&it.status=="completed" }) {
             check(++loops<=40) { "Exact original compaction not reached within bounded pagination" }

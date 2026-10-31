@@ -67,7 +67,7 @@
       "name": "initialMessageLimit",
       "returns": "integer",
       "parameters": {},
-      "expression": 20
+      "expression": 15
     },
     {
       "name": "earlierMessageIncrement",

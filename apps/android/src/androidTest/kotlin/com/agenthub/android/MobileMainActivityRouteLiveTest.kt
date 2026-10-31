@@ -84,7 +84,7 @@ class MobileMainActivityRouteLiveTest {
         val draft="MAIN_ROUTE_LOCAL_DRAFT_"+run.take(8)
         ui.onNodeWithTag("message-input").performTextReplacement(draft);androidx.test.espresso.Espresso.closeSoftKeyboard()
         expandNativeWindow()
-        ui.waitUntil(10_000) { session.visibleMessageLimit==80 }
+        ui.waitUntil(10_000) { session.visibleMessageLimit==75 }
         val sample=session.messages.takeLast(60).first { it.role=="assistant"&&it.text.isNotBlank()&&(it.kind==null||it.kind in listOf("message","agentMessage")) }
         val tag="message-${sample.id}";ui.onNodeWithTag("message-list").performScrollToNode(hasTestTag(tag));ui.onNodeWithTag(tag).assertIsDisplayed()
         val beforeTop=ui.onNodeWithTag(tag).getUnclippedBoundsInRoot().top.value
@@ -95,7 +95,7 @@ class MobileMainActivityRouteLiveTest {
         // No explicit connect, scan, retry or network callback is injected here.
         ui.waitUntil(45_000) { session.selectedClient.endpoint==config.getString("alternateEndpoint")&&session.selectedClient.online&&!session.historyLoading&&!session.loading }
         assertEquals(target,session.targetKey);assertEquals(pin,session.selectedClient.codexDirect!!.fingerprint)
-        assertEquals(draft,session.text);assertEquals(token,storage.token(session.selectedClient.id));assertEquals(80,session.visibleMessageLimit)
+        assertEquals(draft,session.text);assertEquals(token,storage.token(session.selectedClient.id));assertEquals(75,session.visibleMessageLimit)
         assertTrue(session.messages.any { it.id==sample.id });assertTrue(session.operationRecords.isEmpty())
         ui.onNodeWithTag("message-input").assertTextEquals(draft);ui.onNodeWithTag(tag).assertIsDisplayed()
         val afterTop=ui.onNodeWithTag(tag).getUnclippedBoundsInRoot().top.value
@@ -112,7 +112,7 @@ class MobileMainActivityRouteLiveTest {
         val coldSample=cached.messages.takeLast(20).last { it.role=="assistant"&&it.text.isNotBlank()&&(it.kind==null||it.kind in listOf("message","agentMessage")) }
         val reference=File(folder,"route-reference.json");require(!reference.exists())
         reference.writeText(JSONObject().put("run",run).put("pid",android.os.Process.myPid()).put("hostId",session.selectedClient.id).put("threadId",session.selectedThread).put("targetKey",target).put("pin",pin).put("draft",draft).put("sampleId",coldSample.id).put("messageIds",JSONArray(cached.messages.map { it.id })).toString(2))
-        File(folder,"route-proof.json").writeText(JSONObject().put("run",run).put("productionActivity",ui.activity.javaClass.name).put("defaultStore",true).put("pid",android.os.Process.myPid()).put("automaticForegroundDiscovery",true).put("originalTargetPinCredentialDraftAndSample",true).put("expandedWindow",80).put("anchorDeltaDp",abs(afterTop-beforeTop)).put("newOperations",0).toString(2))
+        File(folder,"route-proof.json").writeText(JSONObject().put("run",run).put("productionActivity",ui.activity.javaClass.name).put("defaultStore",true).put("pid",android.os.Process.myPid()).put("automaticForegroundDiscovery",true).put("originalTargetPinCredentialDraftAndSample",true).put("expandedWindow",75).put("anchorDeltaDp",abs(afterTop-beforeTop)).put("newOperations",0).toString(2))
     }
     private fun coldRevisit() {
         val original=JSONObject(File(folder,"route-reference.json").readText())
@@ -123,7 +123,7 @@ class MobileMainActivityRouteLiveTest {
         assertEquals(target,session.targetKey);assertEquals(config.getString("alternateEndpoint"),session.selectedClient.endpoint)
         assertEquals(original.getString("pin"),session.selectedClient.codexDirect!!.fingerprint)
         assertEquals(config.getString("token"),NativeSessionStorage(context).token(session.selectedClient.id))
-        assertEquals(20,session.visibleMessageLimit);assertTrue(session.operationRecords.isEmpty())
+        assertEquals(15,session.visibleMessageLimit);assertTrue(session.operationRecords.isEmpty())
         ui.onNodeWithTag("message-input").assertTextEquals(draft)
         ui.onNodeWithTag("message-list").performScrollToNode(hasTestTag("message-$sample"));ui.onNodeWithTag("message-$sample").assertIsDisplayed()
         shot("cold-persisted-alternate-cache-before-data-success")
@@ -133,7 +133,7 @@ class MobileMainActivityRouteLiveTest {
         assertEquals(original.getString("pin"),session.selectedClient.codexDirect!!.fingerprint)
         assertEquals(draft,session.text);assertTrue(session.messages.any { it.id==sample });assertTrue(session.operationRecords.isEmpty())
         shot("cold-persisted-alternate-automatic-read-recovered")
-        File(folder,"cold-proof.json").writeText(JSONObject().put("run",config.getString("run")).put("productionActivity",ui.activity.javaClass.name).put("defaultStore",true).put("pid",android.os.Process.myPid()).put("differentRouteProcess",true).put("persistedAlternateTargetPinCredentialCacheDraft",true).put("initialWindow",20).put("automaticForegroundReadRecovery",true).put("newOperations",0).toString(2))
+        File(folder,"cold-proof.json").writeText(JSONObject().put("run",config.getString("run")).put("productionActivity",ui.activity.javaClass.name).put("defaultStore",true).put("pid",android.os.Process.myPid()).put("differentRouteProcess",true).put("persistedAlternateTargetPinCredentialCacheDraft",true).put("initialWindow",15).put("automaticForegroundReadRecovery",true).put("newOperations",0).toString(2))
     }
     private fun observedReadTiming() {
         val original=JSONObject(File(folder,"route-reference.json").readText());assertEquals(config.getString("run"),original.getString("run"));assertNotEquals(original.getInt("pid"),android.os.Process.myPid())
@@ -143,7 +143,7 @@ class MobileMainActivityRouteLiveTest {
         ui.waitUntil(45_000) { !session.restoring&&session.selectedClient.id==original.getString("hostId")&&session.selectedThread==original.getString("threadId")&&session.messages.map { it.id }.containsAll(ids)&&session.text==draft }
         mark("original-cache-state-observed")
         assertEquals(target,session.targetKey);assertEquals(config.getString("alternateEndpoint"),session.selectedClient.endpoint)
-        assertEquals(original.getString("pin"),session.selectedClient.codexDirect!!.fingerprint);assertEquals(20,session.visibleMessageLimit)
+        assertEquals(original.getString("pin"),session.selectedClient.codexDirect!!.fingerprint);assertEquals(15,session.visibleMessageLimit)
         assertEquals(config.getString("token"),NativeSessionStorage(context).token(session.selectedClient.id));assertTrue(session.operationRecords.isEmpty())
         ui.onNodeWithTag("message-input").assertTextEquals(draft)
         ui.onNodeWithTag("message-list").performScrollToNode(hasTestTag("message-$sample"));ui.onNodeWithTag("message-$sample").assertIsDisplayed()
@@ -201,7 +201,7 @@ class MobileMainActivityRouteLiveTest {
             val storage=NativeSessionStorage(context);val token=storage.token(session.selectedClient.id)
             val draft="MAIN_RADIO_LOCAL_DRAFT_"+config.getString("run").take(8)
             ui.onNodeWithTag("message-input").performTextReplacement(draft);androidx.test.espresso.Espresso.closeSoftKeyboard()
-            expandNativeWindow();ui.waitUntil(10_000) { session.visibleMessageLimit==80 }
+            expandNativeWindow();ui.waitUntil(10_000) { session.visibleMessageLimit==75 }
             val sample=session.messages.takeLast(40).first { it.role=="assistant"&&it.text.isNotBlank()&&(it.kind==null||it.kind in listOf("message","agentMessage")) }
             val tag="message-${sample.id}";ui.onNodeWithTag("message-list").performScrollToNode(hasTestTag(tag));ui.onNodeWithTag(tag).assertIsDisplayed()
             val top=ui.onNodeWithTag(tag).getUnclippedBoundsInRoot().top.value
@@ -217,7 +217,7 @@ class MobileMainActivityRouteLiveTest {
             val offlineStart=android.os.SystemClock.uptimeMillis();var offlineSamples=0
             while(!restored.exists()&&!wifi()&&android.os.SystemClock.uptimeMillis()<deadline) {
                 assertFalse(session.selectedClient.online);assertEquals(target,session.targetKey);assertEquals(pin,session.selectedClient.codexDirect!!.fingerprint)
-                assertEquals(draft,session.text);assertEquals(80,session.visibleMessageLimit);assertTrue(session.messages.any { it.id==sample.id });assertTrue(session.operationRecords.isEmpty())
+                assertEquals(draft,session.text);assertEquals(75,session.visibleMessageLimit);assertTrue(session.messages.any { it.id==sample.id });assertTrue(session.operationRecords.isEmpty())
                 offlineSamples++;Thread.sleep(250)
             }
             val offlineObservedMS=android.os.SystemClock.uptimeMillis()-offlineStart
@@ -227,12 +227,12 @@ class MobileMainActivityRouteLiveTest {
             ui.waitUntil(60_000) { wifi()&&session.selectedClient.online&&!session.loading&&!session.historyLoading&&fresh.exists() }
             val freshMarker=JSONObject(fresh.readText());assertEquals(config.getString("run"),freshMarker.getString("run"));assertTrue(freshMarker.getBoolean("freshHistory200"))
             assertEquals(target,session.targetKey);assertEquals(pin,session.selectedClient.codexDirect!!.fingerprint);assertEquals(token,storage.token(session.selectedClient.id))
-            assertEquals(draft,session.text);assertEquals(80,session.visibleMessageLimit);assertTrue(session.operationRecords.isEmpty())
+            assertEquals(draft,session.text);assertEquals(75,session.visibleMessageLimit);assertTrue(session.operationRecords.isEmpty())
             ui.onNodeWithTag("message-input").assertTextEquals(draft);ui.onNodeWithTag(tag).assertIsDisplayed()
             val delta=abs(ui.onNodeWithTag(tag).getUnclippedBoundsInRoot().top.value-top)
             assertTrue("Original expanded visible anchor moved after radio recovery",delta<=2f)
             assertTrue(available.get()>=2);shot("physical-radio-automatic-read-original-anchor")
-            File(folder,"radio-proof.json").writeText(JSONObject().put("run",config.getString("run")).put("productionActivity",ui.activity.javaClass.name).put("defaultStore",true).put("pid",android.os.Process.myPid()).put("passiveWifiAvailableCallbacks",available.get()).put("passiveWifiLostCallbacks",lost.get()).put("offlineObservedMS",offlineObservedMS).put("offlineInvariantSamples",offlineSamples).put("sameTargetPinCredentialDraftSample",true).put("expandedWindow",80).put("anchorDeltaDp",delta).put("productionAutomaticReadRecovery",true).put("newOperations",0).toString(2))
+            File(folder,"radio-proof.json").writeText(JSONObject().put("run",config.getString("run")).put("productionActivity",ui.activity.javaClass.name).put("defaultStore",true).put("pid",android.os.Process.myPid()).put("passiveWifiAvailableCallbacks",available.get()).put("passiveWifiLostCallbacks",lost.get()).put("offlineObservedMS",offlineObservedMS).put("offlineInvariantSamples",offlineSamples).put("sameTargetPinCredentialDraftSample",true).put("expandedWindow",75).put("anchorDeltaDp",delta).put("productionAutomaticReadRecovery",true).put("newOperations",0).toString(2))
         } finally { connectivity.unregisterNetworkCallback(observer) }
     }
     @After fun preserve() { runCatching {

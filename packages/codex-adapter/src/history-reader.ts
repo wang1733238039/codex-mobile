@@ -423,7 +423,7 @@ export class CodexHistoryReader {
         await this.rpc('thread/items/list', {
           threadId,
           sortDirection: 'desc',
-          limit: 100,
+          limit: 15,
           ...(pageCursor ? { cursor: pageCursor } : {}),
         }),
       );

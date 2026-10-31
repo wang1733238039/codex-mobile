@@ -1375,7 +1375,7 @@ export class RuntimeSession {
     }
     let start = end,
       bytes = 0;
-    while (start > 0 && end - start < 100) {
+    while (start > 0 && end - start < 15) {
       const size = Buffer.byteLength(JSON.stringify(thread.messages[start - 1]));
       if (start < end && bytes + size > 2 * 1024 * 1024) break;
       bytes += size;
