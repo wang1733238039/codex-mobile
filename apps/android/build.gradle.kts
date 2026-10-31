@@ -27,6 +27,27 @@ android {
         }
         release { isMinifyEnabled = false }
     }
+    val releaseStoreFile = providers.gradleProperty("codexReleaseStoreFile")
+        .orElse(providers.environmentVariable("CODEX_RELEASE_STORE_FILE"))
+    val releaseStorePassword = providers.gradleProperty("codexReleaseStorePassword")
+        .orElse(providers.environmentVariable("CODEX_RELEASE_STORE_PASSWORD"))
+    val releaseKeyAlias = providers.gradleProperty("codexReleaseKeyAlias")
+        .orElse(providers.environmentVariable("CODEX_RELEASE_KEY_ALIAS"))
+    val releaseKeyPassword = providers.gradleProperty("codexReleaseKeyPassword")
+        .orElse(providers.environmentVariable("CODEX_RELEASE_KEY_PASSWORD"))
+    if (releaseStoreFile.isPresent && releaseStorePassword.isPresent &&
+        releaseKeyAlias.isPresent && releaseKeyPassword.isPresent
+    ) {
+        signingConfigs {
+            create("codexRelease") {
+                storeFile = file(releaseStoreFile.get())
+                storePassword = releaseStorePassword.get()
+                keyAlias = releaseKeyAlias.get()
+                keyPassword = releaseKeyPassword.get()
+            }
+        }
+        buildTypes.getByName("release").signingConfig = signingConfigs.getByName("codexRelease")
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
